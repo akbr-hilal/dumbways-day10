@@ -9,7 +9,8 @@ app.use(express.urlencoded({ extended: false }));
 
 let isLogin = true;
 db.connect(function (err, client, done) {
-    if (err) throw err
+    if (err) throw err;
+    console.log("Database connected....");
 
     app.get("/", function (req, res) {
         client.query("SELECT * FROM tb_project", function (err, result) {
@@ -19,8 +20,6 @@ db.connect(function (err, client, done) {
             let dataProject = data.map(function (items) {
                 return {
                     ...items,
-                    start_date: getFullTime(items.start_date),
-                    end_date: getFullTime(items.end_date),
                     duration: getDistanceTime(
                         new Date(items.start_date),
                         new Date(items.end_date)
@@ -31,7 +30,6 @@ db.connect(function (err, client, done) {
             console.log(dataProject);
             res.render("index", { isLogin, projects: dataProject });
         });
-    
     });
 
     app.get("/del-project/:id", function (req, res) {
@@ -49,35 +47,37 @@ db.connect(function (err, client, done) {
         let id = req.params.id;
         console.log(id);
 
-        client.query(`SELECT * FROM tb_project WHERE id=${id}`, function (err, result){
-            if (err) throw err
+        client.query(
+            `SELECT * FROM tb_project WHERE id=${id}`,
+            function (err, result) {
+                if (err) throw err;
 
-            let data = result.rows[0]
-            data = {
-                title: data.title,
-                image: data.image,
-                start_date: data.start_date,
-                end_date: data.end_date,
-                nodeJs: data.technologis[0],
-                reactJs: data.technologis[1],
-                angularJs: data.technologis[2],
-                laravel: data.technologis[3],
-                description: data.description,
-            };
+                let data = result.rows[0];
+                data = {
+                    title: data.title,
+                    image: data.image,
+                    start_date: data.start_date,
+                    end_date: data.end_date,
+                    nodeJs: data.technologis[0] !== "undefined",
+                    reactJs: data.technologis[1] !== "undefined",
+                    angularJs: data.technologis[2] !== "undefined",
+                    laravel: data.technologis[3] !== "undefined",
+                    description: data.description,
+                };
 
-
-            res.render("edit-project", { data, name: id });
-        })
-
+                console.log(data);
+                res.render("edit-project", { data, name: id });
+            }
+        );
     });
 
     app.post("/edit-project/:id", function (req, res) {
         let id = req.params.id;
         let data = req.body;
-        dataProject[id] = data;
+        let dataProject = data;
 
         let updateData = `UPDATE tb_project
-        SET title='${dataProject[id].titleProject}', start_date='${dataProject[id].startDateProject}', end_date='${dataProject[id].endDateProject}', description='${dataProject[id].descriptionProject}', technologis='{"${dataProject[id].checkNodeJS}","${dataProject[id].checkReactJS}","${dataProject[id].checkAngularJS}","${dataProject[id].checkLaravel}"}', image='${dataProject[id].imageProject}'
+        SET title='${dataProject.titleProject}', start_date='${dataProject.startDateProject}', end_date='${dataProject.endDateProject}', description='${dataProject.descriptionProject}', technologis='{"${dataProject.checkNodeJS}","${dataProject.checkReactJS}","${dataProject.checkAngularJS}","${dataProject.checkLaravel}"}', image='${dataProject.imageProject}'
         WHERE id=${id}`;
 
         client.query(updateData, (err, result) => {
@@ -94,7 +94,12 @@ db.connect(function (err, client, done) {
     app.post("/add-project", function (req, res) {
         let data = req.body;
 
-        let insertData = `INSERT INTO tb_project(title, start_date, end_date, description, technologis, image) VALUES ('${data.titleProject}', '${data.startDateProject}', '${data.endDateProject}', '${data.descriptionProject}', '{"${data.checkNodeJS}", "${data.checkReactJS}", "${data.checkAngularJS}", "${data.checkLaravel}"}', '${data.imageProject}')`;
+        let node = req.body.checkNodeJS;
+        let react = req.body.checkReactJS;
+        let angular = req.body.checkAngularJS;
+        let laravel = req.body.checkLaravel;
+
+        let insertData = `INSERT INTO tb_project(title, start_date, end_date, description, technologis, image) VALUES ('${data.titleProject}', '${data.startDateProject}', '${data.endDateProject}', '${data.descriptionProject}', ARRAY ['${node}', '${react}', '${angular}', '${laravel}'], '${data.imageProject}')`;
 
         client.query(insertData, (err, result) => {
             if (err) throw err;
@@ -116,20 +121,21 @@ db.connect(function (err, client, done) {
                 data = {
                     title: data.title,
                     image: data.image,
-                    start_date: getFullTime(data.start_date),
-                    end_date: getFullTime(data.end_date),
+                    start_date: getFullTime(new Date(data.start_date)),
+                    end_date: getFullTime(new Date(data.end_date)),
                     duration: getDistanceTime(
                         new Date(data.start_date),
                         new Date(data.end_date)
                     ),
-                    nodeJs: data.technologis[0],
-                    reactJs: data.technologis[1],
-                    angularJs: data.technologis[2],
-                    laravel: data.technologis[3],
+                    nodeJs: data.technologis[0] !== "undefined",
+                    reactJs: data.technologis[1] !== "undefined",
+                    angularJs: data.technologis[2] !== "undefined",
+                    laravel: data.technologis[3] !== "undefined",
                     description: data.description,
+                    image: data.image,
                 };
-                console.log(data)
-                res.render("project-detail", data);
+                console.log(data);
+                res.render("project-detail", { data: data });
             }
         );
     });
@@ -138,7 +144,14 @@ db.connect(function (err, client, done) {
         res.render("contact");
     });
 
-})
+    app.get("/register", function (req, res) {
+        res.render("register");
+    });
+
+    app.get("/login", function (req, res) {
+        res.render("login");
+    });
+});
 
 function getFullTime(waktu) {
     let month = [
@@ -155,45 +168,12 @@ function getFullTime(waktu) {
         "November",
         "Desember",
     ];
-    let date = [
-        "01",
-        "02",
-        "03",
-        "04",
-        "05",
-        "06",
-        "07",
-        "08",
-        "09",
-        "10",
-        "11",
-        "12",
-        "13",
-        "14",
-        "15",
-        "16",
-        "17",
-        "18",
-        "19",
-        "20",
-        "21",
-        "22",
-        "23",
-        "24",
-        "25",
-        "26",
-        "27",
-        "28",
-        "29",
-        "30",
-        "31",
-    ];
 
-    let dateIndex = waktu.getDate();
+    let date = waktu.getDate();
     let monthIndex = waktu.getMonth();
     let year = waktu.getFullYear();
 
-    let fullTime = `${date[dateIndex]} ${month[monthIndex]} ${year}`;
+    let fullTime = `${date} ${month[monthIndex]} ${year}`;
     return fullTime;
 }
 

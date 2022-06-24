@@ -124,7 +124,7 @@
         <div class="container-fluid bg-blue">
             <div class="container-lg">
                 <div>
-                    <h3 class="text-center py-3 fw-bold">{{this.title}}</h3>
+                    <h3 class="text-center py-3 fw-bold">{{data.title}}</h3>
                 </div>
                 <div class="d-md-block d-lg-flex ">
                     <div class="col-6 d-flex"> 
@@ -134,31 +134,31 @@
                         <h3>Duration</h3>
                         <div class="duration">
                             <p class="calender">
-                                <i class="fa-solid fa-calendar-days"></i> {{this.start_date}} - {{this.end_date}}
+                                <i class="fa-solid fa-calendar-days"></i> {{data.start_date}} - {{data.end_date}}
                             </p>
                             <p class="range">
-                                <i class="fa-solid fa-clock"></i> {{this.duration}}
+                                <i class="fa-solid fa-clock"></i> {{data.duration}}
                             </p>
                         </div> 
                         <h3>Technnologies</h3>
                         <div class="technologis">
                             <div class="technologis-left d-flex row-cols-lg-2 row-cols-1 flex-wrap mb-1">
-                                {{#if this.nodeJs}}
+                                {{#if data.nodeJs}}
                                     <span class="col py-2">
                                         <i class="fa-brands fa-node-js"></i>Node Js
                                     </span>
                                 {{/if}}
-                                {{#if this.reactJs}}
+                                {{#if data.reactJs }}
                                     <span class="col py-2">
                                         <i class="fa-brands fa-react"></i>React Js
                                     </span>
                                 {{/if}}
-                                {{#if this.angularJs}}
+                                {{#if data.angularJs }}
                                     <span class="col py-2">
                                         <i class="fa-brands fa-angular"></i> Angular Js
                                     </span>
                                 {{/if}}                                 
-                                {{#if this.laravel}}
+                                {{#if data.laravel }}
                                     <span class="col py-2">
                                         <i class="fa-brands fa-laravel"></i> Laravel
                                     </span>
@@ -169,7 +169,7 @@
             </div>
             <div class="detail-description mt-4">
                 <p>
-                    {{this.description}}
+                    {{data.description}}
                 </p>
             </div>
         </div>
